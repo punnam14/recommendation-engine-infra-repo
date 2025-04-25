@@ -31,6 +31,9 @@ jobs:
       - name: Install Dependencies
         working-directory: ./source/product-service
         run: pip install -r requirements.txt
+      
+      - name: Install Pytest
+        run: pip install pytest
 
       - name: Run Tests
         working-directory: ./source/product-service
