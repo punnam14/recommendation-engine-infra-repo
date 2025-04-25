@@ -1,25 +1,24 @@
-name: Frontend - Test, Version, Build & Push
+name: Frontend - Test, Build & Push
 
 on:
-  push:
-    paths:
-      - 'frontend-service/**'
-    branches: [main]
+  repository_dispatch:
+    types: [build-frontend]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend-service
+        working-directory: ./source/frontend-service
 
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_URI: ${{ secrets.ECR_FRONTEND_URI }}
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Clone Source Repository
+        run: |
+          git clone https://github.com/punnam14/recommendation-engine-microservices.git source
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v3
@@ -28,29 +27,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Validate Conventional Commit Message
-        uses: amannn/action-semantic-pull-request@v5
-        with:
-          types: |
-            feat
-            fix
-            chore
-            refactor
-            test
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+      - name: Install Dependencies
+        run: npm install
 
       - name: Run Frontend Tests
         run: |
-          npm install
           npm run test:ci || { echo "Tests failed"; exit 1; }
 
-      - name: Bump version with standard-version
-        run: |
-          npm install
-          npx standard-version --skip.tag --skip.commit
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Get Version from Payload
+        run: echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_ENV
 
       - name: Docker Login to ECR
         run: |
@@ -59,7 +44,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t frontend-service .
-          docker tag frontend-service:latest $ECR_URI:v${{ env.VERSION }}
+          docker tag frontend-service:latest $ECR_URI:${{ env.VERSION }}
           docker tag frontend-service:latest $ECR_URI:latest
 
       - name: Push to ECR
