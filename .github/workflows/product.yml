@@ -1,0 +1,56 @@
+name: Product - Test, Build & Push
+
+on:
+  repository_dispatch:
+    types: [build-product]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to tag and push'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_URI: ${{ secrets.ECR_PRODUCT_URI }}
+
+    steps:
+      - name: Clone Source Repository
+        run: |
+          git clone https://github.com/punnam14/recommendation-engine-microservices.git source
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Dependencies
+        working-directory: ./source/product-service
+        run: pip install -r requirements.txt
+
+      - name: Run Tests
+        working-directory: ./source/product-service
+        run: PYTHONPATH=. pytest
+
+      - name: Set Version
+        run: echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+
+      - name: Docker Login to ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
+
+      - name: Build Docker Image
+        working-directory: ./source/product-service
+        run: |
+          docker build -t product-service .
+          docker tag product-service:latest $ECR_URI:${{ env.VERSION }}
+          docker tag product-service:latest $ECR_URI:latest
+
+      - name: Push to ECR
+        run: |
+          docker push $ECR_URI:${{ env.VERSION }}
+          docker push $ECR_URI:latest
