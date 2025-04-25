@@ -3,14 +3,15 @@ name: Frontend - Test, Build & Push
 on:
   repository_dispatch:
     types: [build-frontend]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to tag and push'
+        required: true
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./source/frontend-service
-
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_URI: ${{ secrets.ECR_FRONTEND_URI }}
@@ -28,9 +29,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Dependencies
+        working-directory: ./source/frontend-service
         run: npm install
 
       - name: Run Frontend Tests
+        working-directory: ./source/frontend-service
         run: |
           npm run test:ci || { echo "Tests failed"; exit 1; }
 
@@ -42,6 +45,7 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
 
       - name: Build Docker Image
+        working-directory: ./source/frontend-service
         run: |
           docker build -t frontend-service .
           docker tag frontend-service:latest $ECR_URI:${{ env.VERSION }}
