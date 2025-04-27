@@ -58,3 +58,28 @@ jobs:
         run: |
           docker push $ECR_URI:${{ env.VERSION }}
           docker push $ECR_URI:latest
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Clone Infra Repository
+        run: |
+          git clone https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/punnam14/recommendation-engine-infra-repo.git infra-repo
+
+      - name: Update Deployment YAML with New Version
+        run: |
+          cd infra-repo/kubernetes/qa
+          yq eval -i '.spec.template.spec.containers[0].image = "${{ env.ECR_URI }}:${{ env.VERSION }}"' frontend-deployment.yml
+
+      - name: Commit and Push Changes to Infra Repo
+        working-directory: infra-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: update frontend image to version ${{ env.VERSION }}"
+          git push
+
+      
