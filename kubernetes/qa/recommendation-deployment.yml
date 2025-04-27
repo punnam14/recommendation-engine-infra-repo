@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: recommendation
-        image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/recommendation-service:v0.0.3
+        image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/recommendation-service:0.0.3
         ports:
         - containerPort: 5002
         envFrom:
