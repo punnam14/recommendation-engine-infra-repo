@@ -49,7 +49,10 @@ jobs:
       - name: Build Docker Image
         working-directory: ./source/frontend-service
         run: |
-          docker build -t frontend-service .
+          docker build -t frontend-service \
+            --build-arg REACT_APP_PRODUCT_API=/products \
+            --build-arg REACT_APP_RECOMMENDATION_API=/recommendations \
+            .
           docker tag frontend-service:latest $ECR_URI:${{ env.VERSION }}
           docker tag frontend-service:latest $ECR_URI:latest
 
