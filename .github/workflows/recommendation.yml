@@ -3,8 +3,6 @@ name: Recommendation - Test, Build & Push
 on:
   repository_dispatch:
     types: [build-recommendation]
-  schedule:
-    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       version:

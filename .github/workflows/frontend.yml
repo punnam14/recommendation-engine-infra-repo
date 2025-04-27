@@ -3,8 +3,6 @@ name: Frontend - Test, Build & Push
 on:
   repository_dispatch:
     types: [build-frontend]
-  schedule:
-    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       version:
