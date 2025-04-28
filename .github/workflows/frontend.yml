@@ -73,6 +73,12 @@ jobs:
           cd infra-repo/kubernetes/qa
           yq eval -i '.spec.template.spec.containers[0].image = "${{ env.ECR_URI }}:${{ env.VERSION }}"' frontend-deployment.yml
 
+      - name: Update Last Updated Service Metadata
+        working-directory: infra-repo
+        run: |
+          echo "{\"service\":\"frontend-service\", \"version\":\"${{ env.VERSION }}\"}" > kubernetes/argocd/meta/last-service-updated.json
+          git add kubernetes/argocd/meta/last-service-updated.json
+
       - name: Commit and Push Changes to Infra Repo
         working-directory: infra-repo
         run: |
