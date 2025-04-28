@@ -1,0 +1,28 @@
+name: Run Integration Tests after Deploy
+
+on:
+ repository_dispatch:
+   types: [post-deploy-tests]
+
+jobs:
+ run-tests:
+   runs-on: ubuntu-latest
+
+   steps:
+     - name: Clone Source Repository
+       run: |
+         git clone https://github.com/punnam14/recommendation-engine-microservices.git source
+
+     - name: Set Up Python
+       uses: actions/setup-python@v4
+       with:
+         python-version: 3.10
+
+     - name: Install Test Dependencies
+       run: |
+         pip install pytest requests
+
+     - name: Run Integration Tests
+       working-directory: ./source/tests
+       run: |
+         pytest --tb=short --disable-warnings
