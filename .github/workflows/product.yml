@@ -72,7 +72,7 @@ jobs:
       - name: Update Last Updated Service Metadata
         working-directory: infra-repo
         run: |
-          echo "{\"service\":\"product-service\", \"version\":\"${{ env.VERSION }}\"}" > kubernetes/argocd/meta/last-service-updated.json
+          echo "{\"service\":\"product\", \"version\":\"${{ env.VERSION }}\"}" > kubernetes/argocd/meta/last-service-updated.json
           git add kubernetes/argocd/meta/last-service-updated.json
 
       - name: Commit and Push Changes to Infra Repo
