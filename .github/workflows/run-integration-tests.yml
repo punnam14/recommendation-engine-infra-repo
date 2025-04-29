@@ -40,6 +40,8 @@ jobs:
          SERVICE=$(jq -r '.service' kubernetes/argocd/meta/last-service-updated.json)
          VERSION=$(jq -r '.version' kubernetes/argocd/meta/last-service-updated.json)
          echo "Promoting $SERVICE with version $VERSION to UAT..."
+         echo "SERVICE=$SERVICE" >> $GITHUB_ENV
+         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
          # Set UAT deployment path
          DEPLOYMENT_FILE="kubernetes/uat/${SERVICE}-deployment.yml"
@@ -53,16 +55,18 @@ jobs:
          echo "Image Repo: $IMAGE_REPO"
 
          # Set new full image: repository:new_version
-         NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
+         export NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
          echo "New Image: $NEW_IMAGE"
 
          # Update image in UAT deployment
          yq eval -i '.spec.template.spec.containers[0].image = strenv(NEW_IMAGE)' $DEPLOYMENT_FILE
 
-         # Commit & push
+     - name: Commit and Push Changes to Infra Repo
+       working-directory: infra-repo
+       run: |
          git config user.name "github-actions[bot]"
          git config user.email "github-actions[bot]@users.noreply.github.com"
-         git add $DEPLOYMENT_FILE
-         git commit -m "chore: promote $SERVICE to version $VERSION in UAT"
+         git add .
+         git commit -m "chore: update $SERVICE to version $VERSION in UAT"
          git push
 
