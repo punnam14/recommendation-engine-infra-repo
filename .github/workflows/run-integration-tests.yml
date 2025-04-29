@@ -44,8 +44,20 @@ jobs:
          # Set UAT deployment path
          DEPLOYMENT_FILE="kubernetes/uat/${SERVICE}-deployment.yml"
 
-         # Update image tag in UAT deployment
-         yq eval -i '.spec.template.spec.containers[0].image |= sub(":.*$"; ":" + strenv(VERSION))' $DEPLOYMENT_FILE
+         # Read current image from UAT deployment YAML
+         CURRENT_IMAGE=$(yq eval '.spec.template.spec.containers[0].image' $DEPLOYMENT_FILE)
+         echo "Current Image: $CURRENT_IMAGE"
+
+         # Extract repository part (before :)
+         IMAGE_REPO=${CURRENT_IMAGE%%:*}
+         echo "Image Repo: $IMAGE_REPO"
+
+         # Set new full image: repository:new_version
+         NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
+         echo "New Image: $NEW_IMAGE"
+
+         # Update image in UAT deployment
+         yq eval -i '.spec.template.spec.containers[0].image = strenv(NEW_IMAGE)' $DEPLOYMENT_FILE
 
          # Commit & push
          git config user.name "github-actions[bot]"
@@ -53,3 +65,4 @@ jobs:
          git add $DEPLOYMENT_FILE
          git commit -m "chore: promote $SERVICE to version $VERSION in UAT"
          git push
+
