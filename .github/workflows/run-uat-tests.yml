@@ -83,6 +83,7 @@ jobs:
          yq eval -i '.spec.selector.color = strenv(NEXT_COLOR)' "$SERVICE_FILE"
     
      - name: Commit and Push Changes to Infra Repo
+       working-directory: infra-repo
        run: |
          SERVICE="${{ env.SERVICE }}"
          VERSION="${{ env.VERSION }}"
