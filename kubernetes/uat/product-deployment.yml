@@ -14,10 +14,10 @@ spec:
         app: product-service
     spec:
       containers:
-      - name: product
-        image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.4
-        ports:
-        - containerPort: 5001
-        envFrom:
-        - secretRef:
-            name: recommendation-engine-secrets
+        - name: product
+          image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.6
+          ports:
+            - containerPort: 5001
+          envFrom:
+            - secretRef:
+                name: recommendation-engine-secrets
