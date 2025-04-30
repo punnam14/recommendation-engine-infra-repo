@@ -4,7 +4,7 @@ metadata:
   name: product-service-blue
   namespace: recommendation-engine-prod
 spec:
-  replicas: 2
+  replicas: 0
   selector:
     matchLabels:
       app: product-service
@@ -16,10 +16,10 @@ spec:
         color: blue
     spec:
       containers:
-      - name: product
-        image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.4
-        ports:
-        - containerPort: 5001
-        envFrom:
-        - secretRef:
-            name: recommendation-engine-secrets
+        - name: product
+          image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.4
+          ports:
+            - containerPort: 5001
+          envFrom:
+            - secretRef:
+                name: recommendation-engine-secrets
