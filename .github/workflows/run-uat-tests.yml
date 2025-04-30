@@ -66,7 +66,7 @@ jobs:
          DEPLOYMENT_FILE="kubernetes/prod/${NEXT_COLOR}/${SERVICE}-deployment.yml"
          CURRENT_IMAGE=$(yq eval '.spec.template.spec.containers[0].image' "$DEPLOYMENT_FILE")
          IMAGE_REPO=${CURRENT_IMAGE%%:*}
-         NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
+         export NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
          echo "Updating $DEPLOYMENT_FILE to use $NEW_IMAGE"
          yq eval -i '.spec.template.spec.containers[0].image = strenv(NEW_IMAGE)' "$DEPLOYMENT_FILE"
 
