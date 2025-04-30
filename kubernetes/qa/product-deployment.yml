@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: product
-          image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.5
+          image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/product-service:0.1.6
           ports:
             - containerPort: 5001
           envFrom:
