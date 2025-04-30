@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation-service-blue
+  namespace: recommendation-engine-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: recommendation-service
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: recommendation-service
+        color: blue
+    spec:
+      containers:
+      - name: recommendation
+        image: 977099024018.dkr.ecr.us-east-1.amazonaws.com/recommendation-service:0.0.3
+        ports:
+        - containerPort: 5002
+        envFrom:
+        - secretRef:
+            name: recommendation-engine-secrets
