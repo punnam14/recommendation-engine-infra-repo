@@ -8,9 +8,9 @@ metadata:
 spec:
   selector:
     app: frontend-service
-    color: blue
+    color: green
   ports:
     - protocol: TCP
-      port: 80    # external port (Ingress will connect to 80)
-      targetPort: 3000  # inside container
+      port: 80 # external port (Ingress will connect to 80)
+      targetPort: 3000 # inside container
   type: ClusterIP
