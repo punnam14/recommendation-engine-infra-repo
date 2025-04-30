@@ -24,4 +24,100 @@ jobs:
        working-directory: ./source/tests
        run: |
          pytest --tb=short --disable-warnings
+
+     - name: Install jq and yq
+       run: |
+         sudo apt-get update && sudo apt-get install -y jq
+         sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+         sudo chmod +x /usr/bin/yq      
      
+     - name: Promote Updated Service to Prod
+       run: |
+         git clone https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/punnam14/recommendation-engine-infra-repo.git infra-repo
+         cd infra-repo
+
+         SERVICE=$(jq -r '.service' kubernetes/argocd/meta/last-service-updated.json)
+         VERSION=$(jq -r '.version' kubernetes/argocd/meta/last-service-updated.json)
+         echo "SERVICE=$SERVICE" >> $GITHUB_ENV
+         echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+     - name: Determine Current Color and Next Color
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         CURRENT_COLOR=$(yq eval '.spec.selector.color' kubernetes/prod/service/${SERVICE}-service.yml)
+         echo "CURRENT_COLOR=$CURRENT_COLOR" >> $GITHUB_ENV
+         if [[ "$CURRENT_COLOR" == "blue" ]]; then
+           NEXT_COLOR="green"
+         else
+           NEXT_COLOR="blue"
+         fi
+         echo "NEXT_COLOR=$NEXT_COLOR" >> $GITHUB_ENV
+      
+     - name: Update Next Color Deployment with New Image
+       working-directory: infra-repo
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         NEXT_COLOR="${{ env.NEXT_COLOR }}"
+         CURRENT_COLOR="${{ env.CURRENT_COLOR }}"
+
+         DEPLOYMENT_FILE="kubernetes/prod/${NEXT_COLOR}/${SERVICE}-deployment.yml"
+         CURRENT_IMAGE=$(yq eval '.spec.template.spec.containers[0].image' "$DEPLOYMENT_FILE")
+         IMAGE_REPO=${CURRENT_IMAGE%%:*}
+         NEW_IMAGE="${IMAGE_REPO}:${VERSION}"
+         echo "Updating $DEPLOYMENT_FILE to use $NEW_IMAGE"
+         yq eval -i '.spec.template.spec.containers[0].image = strenv(NEW_IMAGE)' "$DEPLOYMENT_FILE"
+
+     - name: Switch Service to Next Color
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         NEXT_COLOR="${{ env.NEXT_COLOR }}"
+         CURRENT_COLOR="${{ env.CURRENT_COLOR }}"
+
+         SERVICE_FILE="kubernetes/prod/service/${SERVICE}-service.yml"
+         echo "Switching service selector to color: ${NEXT_COLOR}"
+         yq eval -i '.spec.selector.color = strenv(NEXT_COLOR)' "$SERVICE_FILE"
+    
+     - name: Commit and Push Changes to Infra Repo
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         NEXT_COLOR="${{ env.NEXT_COLOR }}"
+         CURRENT_COLOR="${{ env.CURRENT_COLOR }}"
+
+         git config user.name "github-actions[bot]"
+         git config user.email "github-actions[bot]@users.noreply.github.com"
+         git add .
+         git commit -m "chore: promote $SERVICE to $NEXT_COLOR with version $VERSION"
+         git push
+      
+     - name: Scale Down Old Color Deployment
+       working-directory: infra-repo
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         NEXT_COLOR="${{ env.NEXT_COLOR }}"
+         CURRENT_COLOR="${{ env.CURRENT_COLOR }}"
+
+         git pull origin HEAD
+         OLD_DEPLOYMENT_FILE="kubernetes/prod/${CURRENT_COLOR}/${SERVICE}-deployment.yml"
+         echo "Scaling down old deployment: $OLD_DEPLOYMENT_FILE"
+         yq eval -i '.spec.replicas = 0' "$OLD_DEPLOYMENT_FILE"
+      
+     - name: Commit and Push Demotion Changes to Infra Repo
+       working-directory: infra-repo
+       run: |
+         SERVICE="${{ env.SERVICE }}"
+         VERSION="${{ env.VERSION }}"
+         NEXT_COLOR="${{ env.NEXT_COLOR }}"
+         CURRENT_COLOR="${{ env.CURRENT_COLOR }}"
+         
+         git config user.name "github-actions[bot]"
+         git config user.email "github-actions[bot]@users.noreply.github.com"
+         git add .
+         git commit -m "chore: demote $SERVICE from $CURRENT_COLOR"
+         git push
+
+    
