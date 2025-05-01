@@ -27,9 +27,6 @@ jobs:
      
      - name: Send UAT Completion Notification
        uses: dawidd6/action-send-mail@v3
-       env:
-         SERVICE: ${{ env.SERVICE }}
-         VERSION: ${{ env.VERSION }}
        with:
          server_address: smtp.ethereal.email
          server_port: 587
@@ -37,13 +34,17 @@ jobs:
          password: ${{ secrets.ETHEREAL_PASS }}
          subject: "✅ UAT Passed - Ready for Prod"
          body: |
-           Service **$SERVICE** has been upgraded to version **$VERSION** and successfully deployed to the UAT environment.
-           
-           🔍 You can test it at: [UAT Link](https://uat.hottake.pro/)
+           Hi Team,
 
-           👉 Once verified, please proceed with production deployment by manually running the following workflow prod-promotion.yml at link:
-           [Run Production Promotion Workflow](https://github.com/punnam14/recommendation-engine-infra-repo/actions)
-         to: your-team@yourcompany.com
+           Service - ${{ env.SERVICE }} has been upgraded to version - ${{ env.VERSION }} and successfully deployed to the UAT environment.
+          
+           🔍 You can test it at: https://uat.hottake.pro/
+
+           👉 Once verified, please proceed with production deployment by manually running the following workflow:
+           https://github.com/punnam14/recommendation-engine-infra-repo/actions
+
+           UAT Bot
+         to: kayden.lindgren43@ethereal.email
          from: "UAT Bot <uat-bot@ethereal.email>"
 
 
