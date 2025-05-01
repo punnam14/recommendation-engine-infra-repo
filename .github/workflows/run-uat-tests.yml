@@ -32,7 +32,7 @@ jobs:
          server_port: 587
          username: ${{ secrets.ETHEREAL_USER }}
          password: ${{ secrets.ETHEREAL_PASS }}
-         subject: "✅ UAT Passed - Ready for Prod"
+         subject: "✅ UAT Updated - Ready for testing"
          body: |
            Hi Team,
 
@@ -40,8 +40,8 @@ jobs:
           
            🔍 You can test it at: https://uat.hottake.pro/
 
-           👉 Once verified, please proceed with production deployment by manually running the following workflow:
-           https://github.com/punnam14/recommendation-engine-infra-repo/actions
+           👉 Once verified, please proceed with production deployment by manually running the workflow "Promote to Production":
+           https://github.com/punnam14/recommendation-engine-infra-repo/actions/workflows/prod-promotion.yml
 
            UAT Bot
          to: kayden.lindgren43@ethereal.email
