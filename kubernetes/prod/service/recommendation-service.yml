@@ -8,7 +8,7 @@ metadata:
 spec:
   selector:
     app: recommendation-service
-    color: blue
+    color: green
   ports:
     - protocol: TCP
       port: 5002
