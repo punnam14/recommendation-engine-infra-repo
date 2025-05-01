@@ -8,7 +8,7 @@ metadata:
 spec:
   selector:
     app: frontend-service
-    color: blue
+    color: green
   ports:
     - protocol: TCP
       port: 80 # external port (Ingress will connect to 80)
