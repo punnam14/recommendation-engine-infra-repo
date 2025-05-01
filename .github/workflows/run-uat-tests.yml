@@ -1,8 +1,8 @@
-name: Run UAT Tests after Deploy
+name: Send mail after UAT Deployment
 
 on:
  repository_dispatch:
-   types: [post-deploy-uat-tests]
+   types: [post-deploy-uat]
 
 jobs:
  run-tests:

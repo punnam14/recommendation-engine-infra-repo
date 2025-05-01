@@ -52,6 +52,9 @@ jobs:
          echo "Updating $DEPLOYMENT_FILE to use $NEW_IMAGE"
          yq eval -i '.spec.template.spec.containers[0].image = strenv(NEW_IMAGE)' "$DEPLOYMENT_FILE"
 
+         echo "Setting replicas to 2 in $DEPLOYMENT_FILE"
+         yq eval -i '.spec.replicas = 2' "$DEPLOYMENT_FILE"
+
       - name: Switch Service to Next Color
         working-directory: infra-repo
         run: |
