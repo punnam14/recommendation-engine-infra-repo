@@ -81,6 +81,9 @@ jobs:
          git commit -m "chore: promote $SERVICE to $NEXT_COLOR with version $VERSION"
          git push
       
+      - name: Wait for New Deployment to Stabilize
+        run: sleep 360
+      
       - name: Scale Down Old Color Deployment
         working-directory: infra-repo
         run: |
